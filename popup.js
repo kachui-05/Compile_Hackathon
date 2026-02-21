@@ -154,3 +154,10 @@ document.getElementById('intensity').addEventListener('input', (e) => {
 });
 
 init();
+
+// Attach mode card clicks
+document.querySelectorAll('.mode-card').forEach(card => {
+  card.addEventListener('click', () => {
+    setMode(card.dataset.mode);
+  });
+});
