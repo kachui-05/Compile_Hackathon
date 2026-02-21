@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AdaptUI</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Space+Mono:wght@400;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0c0c0f;
+    --surface: #16161c;
+    --surface2: #1e1e26;
+    --border: #2a2a36;
+    --text: #f0f0f8;
+    --muted: #6a6a80;
+    --accent: #7c6aff;
+    --accent-glow: rgba(124, 106, 255, 0.25);
+  }
+
+  body {
+    width: 320px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    overflow: hidden;
+  }
+
+  /* Header */
+  .header {
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .logo-icon {
+    width: 30px;
+    height: 30px;
+    background: linear-gradient(135deg, var(--accent), #ff6acd);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+  }
+  .logo-text {
+    font-weight: 800;
+    font-size: 16px;
+    letter-spacing: -0.5px;
+  }
+  .logo-text span { color: var(--accent); }
+
+  .site-badge {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 3px 8px;
+    border-radius: 999px;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Context detected banner */
+  .context-banner {
+    margin: 12px 16px 0;
+    padding: 10px 14px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    display: none;
+  }
+  .context-banner.visible { display: flex; }
+  .context-banner .ctx-icon { font-size: 20px; }
+  .context-banner .ctx-info { flex: 1; }
+  .context-banner .ctx-label {
+    font-size: 10px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .context-banner .ctx-name {
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--accent);
+  }
+  .ctx-auto-btn {
+    padding: 5px 10px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .ctx-auto-btn:hover { opacity: 0.85; }
+
+  /* Sections */
+  .section-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    padding: 16px 20px 8px;
+  }
+
+  /* Mode grid */
+  .modes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 0 16px;
+  }
+
+  .mode-card {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .mode-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--mode-color, var(--accent));
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .mode-card:hover::before { opacity: 0.06; }
+  .mode-card:hover { border-color: #444; transform: translateY(-1px); }
+  .mode-card.active {
+    border-color: var(--mode-color, var(--accent));
+    background: var(--surface2);
+    box-shadow: 0 0 0 1px var(--mode-color, var(--accent)), 0 4px 20px rgba(0,0,0,0.4);
+  }
+  .mode-card.active::before { opacity: 0.1; }
+
+  .mode-emoji { font-size: 24px; display: block; margin-bottom: 8px; }
+  .mode-name { font-weight: 700; font-size: 13px; display: block; }
+  .mode-desc { font-size: 10px; color: var(--muted); margin-top: 2px; line-height: 1.4; }
+  .mode-tag {
+    display: inline-block;
+    margin-top: 6px;
+    font-family: 'Space Mono', monospace;
+    font-size: 8px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: var(--surface2);
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .mode-tag.context-specific {
+    background: rgba(124,106,255,0.1);
+    color: var(--accent);
+    border-color: rgba(124,106,255,0.3);
+  }
+
+  /* Intensity slider */
+  .slider-row {
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .slider-label {
+    font-size: 11px;
+    color: var(--muted);
+    white-space: nowrap;
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    min-width: 60px;
+  }
+  input[type="range"] {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    outline: none;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    box-shadow: 0 0 8px var(--accent-glow);
+  }
+  .slider-val {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    min-width: 28px;
+    text-align: right;
+  }
+
+  /* Off button */
+  .off-row {
+    padding: 8px 16px 16px;
+  }
+  .off-btn {
+    width: 100%;
+    padding: 10px;
+    background: transparent;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    color: var(--muted);
+    font-family: 'Syne', sans-serif;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .off-btn:hover { border-color: #ff4d4d; color: #ff4d4d; }
+  .off-btn.dimmed { opacity: 0.4; pointer-events: none; }
+
+  /* Footer */
+  .footer {
+    border-top: 1px solid var(--border);
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .status-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #22c55e;
+    display: inline-block;
+    margin-right: 6px;
+    box-shadow: 0 0 6px #22c55e;
+  }
+  .status-dot.off { background: var(--muted); box-shadow: none; }
+  .status-text {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
+  }
+  .version {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    color: var(--border);
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">
+    <div class="logo-icon">✦</div>
+    <div class="logo-text">Adapt<span>UI</span></div>
+  </div>
+  <div class="site-badge" id="site-badge">Loading...</div>
+</div>
+
+<div class="context-banner" id="context-banner">
+  <div class="ctx-icon" id="ctx-icon">🛒</div>
+  <div class="ctx-info">
+    <div class="ctx-label">Site detected</div>
+    <div class="ctx-name" id="ctx-name">Shopping site</div>
+  </div>
+  <button class="ctx-auto-btn" id="ctx-auto-btn">Auto-apply</button>
+</div>
+
+<div class="section-label">Universal Modes</div>
+<div class="modes" id="universal-modes">
+
+  <div class="mode-card" data-mode="lowvision" style="--mode-color: #fbbf24;" onclick="setMode('lowvision')">
+    <span class="mode-emoji">👁</span>
+    <span class="mode-name">Low Vision</span>
+    <div class="mode-desc">Larger text, high contrast, clear focus rings</div>
+    <span class="mode-tag">Any site</span>
+  </div>
+
+  <div class="mode-card" data-mode="focus" style="--mode-color: #6ee7b7;" onclick="setMode('focus')">
+    <span class="mode-emoji">📖</span>
+    <span class="mode-name">Focus Read</span>
+    <div class="mode-desc">Dims clutter, spotlights content</div>
+    <span class="mode-tag">Any site</span>
+  </div>
+
+  <div class="mode-card" data-mode="dark" style="--mode-color: #818cf8;" onclick="setMode('dark')">
+    <span class="mode-emoji">🌙</span>
+    <span class="mode-name">Force Dark</span>
+    <div class="mode-desc">Dark mode on any site that doesn't have one</div>
+    <span class="mode-tag">Any site</span>
+  </div>
+
+  <div class="mode-card" data-mode="speed" style="--mode-color: #34d399;" onclick="setMode('speed')">
+    <span class="mode-emoji">⚡</span>
+    <span class="mode-name">Speed</span>
+    <div class="mode-desc">Strips animations, ads, sidebars</div>
+    <span class="mode-tag">Any site</span>
+  </div>
+
+</div>
+
+<div class="section-label">Context Modes</div>
+<div class="modes" id="context-modes">
+
+  <div class="mode-card" data-mode="shopping" style="--mode-color: #f97316;" onclick="setMode('shopping')">
+    <span class="mode-emoji">🛒</span>
+    <span class="mode-name">Shopping</span>
+    <div class="mode-desc">Big prices, deal highlights, savings</div>
+    <span class="mode-tag context-specific">Shop sites</span>
+  </div>
+
+  <div class="mode-card" data-mode="news" style="--mode-color: #60a5fa;" onclick="setMode('news')">
+    <span class="mode-emoji">📰</span>
+    <span class="mode-name">News/Article</span>
+    <div class="mode-desc">Ad-free reading, clean typography</div>
+    <span class="mode-tag context-specific">News sites</span>
+  </div>
+
+  <div class="mode-card" data-mode="video" style="--mode-color: #f43f5e;" onclick="setMode('video')">
+    <span class="mode-emoji">🎬</span>
+    <span class="mode-name">Cinema</span>
+    <div class="mode-desc">Dims UI, hides distractions while watching</div>
+    <span class="mode-tag context-specific">Video sites</span>
+  </div>
+
+  <div class="mode-card" data-mode="code" style="--mode-color: #a3e635;" onclick="setMode('code')">
+    <span class="mode-emoji">💻</span>
+    <span class="mode-name">Dev/Code</span>
+    <div class="mode-desc">Mono font boost, wider layout, less noise</div>
+    <span class="mode-tag context-specific">Dev sites</span>
+  </div>
+
+</div>
+
+<div class="section-label" id="intensity-label">Intensity</div>
+<div class="slider-row">
+  <span class="slider-label">Subtle</span>
+  <input type="range" id="intensity" min="1" max="3" value="2" step="1">
+  <span class="slider-label" style="text-align:right">Strong</span>
+  <span class="slider-val" id="intensity-val">2</span>
+</div>
+
+<div class="off-row">
+  <button class="off-btn dimmed" id="off-btn" onclick="setMode(null)">
+    ✕ Turn off mode
+  </button>
+</div>
+
+<div class="footer">
+  <div>
+    <span class="status-dot off" id="status-dot"></span>
+    <span class="status-text" id="status-text">No mode active</span>
+  </div>
+  <span class="version">v1.0.0</span>
+</div>
+
+<script src="popup.js"></script>
+</body>
+</html>

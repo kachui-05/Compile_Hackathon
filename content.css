@@ -1,0 +1,6 @@
+/* AdaptUI - Base injected stylesheet */
+/* This file is intentionally minimal - modes are injected dynamically via JS */
+
+#__adaptui_toast__ {
+  font-family: system-ui, -apple-system, sans-serif !important;
+}
