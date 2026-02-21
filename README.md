@@ -76,3 +76,5 @@ Then add a card for it in `popup.html` with `data-mode="mymode"`.
 ---
 
 Built for Compile Hackathon 🚀
+
+## Eyetracking
