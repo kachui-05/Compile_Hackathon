@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Adaptive UI</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Space+Mono:wght@400;700&family=DM+Serif+Display&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0e0e0e;
+    --surface: #1a1a1a;
+    --border: #2e2e2e;
+    --text: #f0f0f0;
+    --text-muted: #888;
+    --accent: #ff4d4d;
+    --accent2: #ffd166;
+    --radius: 12px;
+    --font-body: 'Syne', sans-serif;
+    --font-mono: 'Space Mono', monospace;
+    --font-serif: 'DM Serif Display', serif;
+    --font-accessible: 'Atkinson Hyperlegible', sans-serif;
+    --base-size: 16px;
+    --transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: var(--base-size);
+    min-height: 100vh;
+    overflow-x: hidden;
+    transition: var(--transition);
+  }
+
+  /* ---- MODE SELECTOR ---- */
+  .mode-bar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    background: rgba(14,14,14,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .mode-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-right: 8px;
+    white-space: nowrap;
+  }
+  .mode-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-muted);
+    font-family: var(--font-body);
+    font-size: 13px;
+    cursor: pointer;
+    transition: var(--transition);
+    white-space: nowrap;
+  }
+  .mode-btn:hover { color: var(--text); border-color: #555; }
+  .mode-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    font-weight: 700;
+  }
+  .mode-btn .icon { font-size: 16px; }
+
+  /* ---- MAIN LAYOUT ---- */
+  .app {
+    padding-top: 80px;
+    min-height: 100vh;
+    transition: var(--transition);
+  }
+
+  /* ---- PRODUCT GRID ---- */
+  .section-header {
+    padding: 40px 40px 20px;
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+  }
+  .section-title {
+    font-family: var(--font-body);
+    font-size: 28px;
+    font-weight: 800;
+    transition: var(--transition);
+  }
+  .section-sub {
+    color: var(--text-muted);
+    font-size: 14px;
+    transition: var(--transition);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    padding: 0 40px 80px;
+    transition: var(--transition);
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    cursor: pointer;
+    transition: var(--transition);
+    position: relative;
+  }
+  .card:hover {
+    transform: translateY(-4px);
+    border-color: #555;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .card-img {
+    width: 100%;
+    aspect-ratio: 4/3;
+    object-fit: cover;
+    display: block;
+    transition: var(--transition);
+  }
+  .card-img-placeholder {
+    width: 100%;
+    aspect-ratio: 4/3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 64px;
+    background: var(--surface);
+    transition: var(--transition);
+  }
+  .card-body {
+    padding: 16px;
+    transition: var(--transition);
+  }
+  .card-name {
+    font-weight: 700;
+    font-size: 15px;
+    margin-bottom: 4px;
+    transition: var(--transition);
+  }
+  .card-desc {
+    color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1.5;
+    margin-bottom: 12px;
+    transition: var(--transition);
+  }
+  .card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: var(--transition);
+  }
+  .price {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--accent2);
+    transition: var(--transition);
+  }
+  .btn-add {
+    padding: 8px 16px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    transition: var(--transition);
+  }
+  .btn-add:hover { opacity: 0.85; }
+
+  /* =========================================
+     SHOPPING MODE
+  ========================================= */
+  body.mode-shopping {
+    --bg: #fff8f0;
+    --surface: #fff;
+    --border: #ffe0c0;
+    --text: #1a0a00;
+    --text-muted: #a07050;
+    --accent: #e8500a;
+    --accent2: #d63800;
+    --radius: 8px;
+  }
+  body.mode-shopping .mode-bar {
+    background: rgba(255,248,240,0.95);
+    border-bottom-color: #ffe0c0;
+  }
+  body.mode-shopping .section-title { font-size: 36px; }
+  body.mode-shopping .grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+  body.mode-shopping .price {
+    font-size: 32px;
+    font-weight: 700;
+    font-family: var(--font-serif);
+    color: var(--accent2);
+  }
+  body.mode-shopping .card {
+    box-shadow: 0 2px 16px rgba(230,80,10,0.08);
+  }
+  body.mode-shopping .card-img-placeholder { font-size: 80px; background: #fff5ec; }
+  body.mode-shopping .card-name { font-size: 17px; }
+  body.mode-shopping .badge-deal {
+    display: block;
+  }
+  .badge-deal {
+    display: none;
+    position: absolute;
+    top: 12px; right: 12px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    font-family: var(--font-mono);
+    padding: 4px 10px;
+    border-radius: 999px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    z-index: 2;
+  }
+  body.mode-shopping .discount {
+    display: block;
+  }
+  .discount {
+    display: none;
+    font-size: 12px;
+    color: #888;
+    text-decoration: line-through;
+    font-family: var(--font-mono);
+    margin-left: 8px;
+  }
+  body.mode-shopping .savings {
+    display: block;
+  }
+  .savings {
+    display: none;
+    background: #fff0e8;
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+  }
+
+  /* =========================================
+     LOW VISION MODE
+  ========================================= */
+  body.mode-vision {
+    --bg: #1a1200;
+    --surface: #2a2000;
+    --border: #5a4a00;
+    --text: #ffee88;
+    --text-muted: #c8b040;
+    --accent: #ffcc00;
+    --accent2: #ffee88;
+    --base-size: 22px;
+    --radius: 16px;
+  }
+  body.mode-vision .mode-bar {
+    background: rgba(26,18,0,0.97);
+    padding: 16px 24px;
+  }
+  body.mode-vision .mode-btn { font-size: 16px; padding: 10px 20px; }
+  body.mode-vision .mode-label { font-size: 14px; }
+  body.mode-vision .section-title { font-size: 48px; font-family: var(--font-accessible); }
+  body.mode-vision .section-sub { font-size: 20px; }
+  body.mode-vision .grid { grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 28px; }
+  body.mode-vision .card { border-width: 3px; border-radius: 20px; }
+  body.mode-vision .card-name { font-size: 24px; font-family: var(--font-accessible); }
+  body.mode-vision .card-desc { font-size: 18px; line-height: 1.8; }
+  body.mode-vision .price { font-size: 36px; }
+  body.mode-vision .btn-add { font-size: 18px; padding: 12px 24px; border-radius: 12px; }
+  body.mode-vision .card-img-placeholder { font-size: 100px; }
+  body.mode-vision .card-body { padding: 24px; }
+  body.mode-vision .card:hover { transform: translateY(-6px); box-shadow: 0 0 0 4px var(--accent), 0 20px 60px rgba(0,0,0,0.7); }
+  body.mode-vision .vision-tip { display: flex; }
+  .vision-tip {
+    display: none;
+    background: var(--border);
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 16px;
+    color: var(--accent);
+    margin-top: 10px;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* =========================================
+     FOCUS / READING MODE
+  ========================================= */
+  body.mode-focus {
+    --bg: #f5f0e8;
+    --surface: #ede8dc;
+    --border: #d0c8b8;
+    --text: #2c2416;
+    --text-muted: #807060;
+    --accent: #5a4030;
+    --accent2: #5a4030;
+    --radius: 4px;
+  }
+  body.mode-focus .mode-bar { background: rgba(245,240,232,0.97); border-bottom-color: #d0c8b8; }
+  body.mode-focus .grid { grid-template-columns: 1fr; max-width: 680px; margin: 0 auto; }
+  body.mode-focus .card { display: grid; grid-template-columns: 180px 1fr; border-radius: 4px; }
+  body.mode-focus .card-img-placeholder { aspect-ratio: 1; width: 180px; border-radius: 0; font-size: 64px; }
+  body.mode-focus .section-title { font-family: var(--font-serif); font-size: 40px; font-weight: 400; }
+  body.mode-focus .card-name { font-family: var(--font-serif); font-size: 20px; font-weight: 400; }
+  body.mode-focus .card-desc { font-size: 15px; line-height: 1.8; color: var(--text); }
+  body.mode-focus .price { color: var(--accent); font-size: 16px; }
+  body.mode-focus .btn-add { background: var(--accent); border-radius: 2px; font-size: 12px; letter-spacing: 1px; }
+  body.mode-focus .card:hover { transform: none; box-shadow: 4px 4px 0 var(--accent); }
+  body.mode-focus .card-body { display: flex; flex-direction: column; justify-content: space-between; }
+
+  /* =========================================
+     SPEED MODE
+  ========================================= */
+  body.mode-speed {
+    --bg: #000;
+    --surface: #111;
+    --border: #222;
+    --text: #fff;
+    --text-muted: #555;
+    --accent: #00ff88;
+    --accent2: #00ff88;
+    --radius: 0px;
+  }
+  body.mode-speed .mode-bar { background: #000; border-bottom: 1px solid #222; padding: 8px 24px; }
+  body.mode-speed .grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 2px; padding: 0 0 80px; }
+  body.mode-speed .section-header { padding: 20px 0 10px; }
+  body.mode-speed .section-title { font-family: var(--font-mono); font-size: 18px; color: var(--accent); }
+  body.mode-speed .card { border-radius: 0; border: none; border-bottom: 1px solid #222; border-right: 1px solid #222; }
+  body.mode-speed .card:hover { transform: none; background: #1a1a1a; border-color: var(--accent); box-shadow: none; }
+  body.mode-speed .card-img-placeholder { aspect-ratio: 1; font-size: 40px; }
+  body.mode-speed .card-name { font-family: var(--font-mono); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  body.mode-speed .card-desc { display: none; }
+  body.mode-speed .price { font-size: 20px; color: var(--accent); }
+  body.mode-speed .btn-add { padding: 6px 10px; font-size: 11px; border-radius: 0; background: var(--accent); color: #000; font-family: var(--font-mono); }
+  body.mode-speed .card-body { padding: 10px; }
+  body.mode-speed .card-footer { margin-top: 6px; }
+
+  /* ---- Transition animation ---- */
+  .mode-transition-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--accent);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 999;
+    transition: opacity 0.15s ease;
+  }
+  .mode-transition-overlay.flash { opacity: 0.15; }
+
+  /* ---- Mode hint ---- */
+  .mode-hint {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 12px 24px;
+    border-radius: 999px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text-muted);
+    opacity: 0;
+    transition: all 0.4s ease;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 98;
+  }
+  .mode-hint.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+</style>
+</head>
+<body class="mode-default">
+
+<div class="mode-transition-overlay" id="overlay"></div>
+
+<div class="mode-bar">
+  <span class="mode-label">Mode</span>
+  <button class="mode-btn active" data-mode="default" onclick="setMode('default', this)">
+    <span class="icon">🏠</span> Default
+  </button>
+  <button class="mode-btn" data-mode="shopping" onclick="setMode('shopping', this)">
+    <span class="icon">🛒</span> Shopping
+  </button>
+  <button class="mode-btn" data-mode="vision" onclick="setMode('vision', this)">
+    <span class="icon">👁</span> Low Vision
+  </button>
+  <button class="mode-btn" data-mode="focus" onclick="setMode('focus', this)">
+    <span class="icon">📖</span> Focus Read
+  </button>
+  <button class="mode-btn" data-mode="speed" onclick="setMode('speed', this)">
+    <span class="icon">⚡</span> Speed
+  </button>
+</div>
+
+<div class="app">
+  <div class="section-header">
+    <h1 class="section-title" id="section-title">Featured Products</h1>
+    <span class="section-sub" id="section-sub">Handpicked for you</span>
+  </div>
+  <div class="grid" id="grid"></div>
+</div>
+
+<div class="mode-hint" id="hint"></div>
+
+<script>
+const products = [
+  { name: "Wireless Headphones", emoji: "🎧", desc: "Studio-grade sound with 40hr battery and adaptive noise cancellation.", price: 199, original: 279, deal: true },
+  { name: "Mechanical Keyboard", emoji: "⌨️", desc: "Tactile clicky switches, RGB backlighting, aluminum frame.", price: 149, original: 199, deal: false },
+  { name: "Ergonomic Chair", emoji: "🪑", desc: "Lumbar support, breathable mesh, 4D armrests, up to 8hrs comfort.", price: 449, original: 599, deal: true },
+  { name: "4K Webcam", emoji: "📷", desc: "Crystal-clear video calls, auto-framing AI, built-in ring light.", price: 89, original: 119, deal: false },
+  { name: "Standing Desk", emoji: "🖥️", desc: "Electric height adjustment, cable management, memory presets.", price: 549, original: 749, deal: true },
+  { name: "USB-C Hub", emoji: "🔌", desc: "7-in-1 hub: 4K HDMI, 100W PD, 3× USB-A, SD card reader.", price: 59, original: 79, deal: false },
+];
+
+const modeHints = {
+  default: "Standard browsing mode",
+  shopping: "💰 Prices enlarged · Deals highlighted · Savings shown",
+  vision: "👁 High contrast · Large text · Enhanced focus indicators",
+  focus: "📖 Single column · Distraction-free · Editorial layout",
+  speed: "⚡ Compact grid · Details hidden · One-tap buy"
+};
+
+const modeTitles = {
+  default: ["Featured Products", "Handpicked for you"],
+  shopping: ["Today's Best Deals", "Limited time offers"],
+  vision: ["Products", "Easy to read, easy to choose"],
+  focus: ["Curated Selection", "Take your time"],
+  speed: ["QUICK BUY", "> fast."]
+};
+
+function renderGrid() {
+  const grid = document.getElementById('grid');
+  grid.innerHTML = products.map((p, i) => `
+    <div class="card" style="animation: fadeUp 0.4s ease both; animation-delay: ${i * 0.06}s">
+      ${p.deal ? '<span class="badge-deal">🔥 Deal</span>' : ''}
+      <div class="card-img-placeholder">${p.emoji}</div>
+      <div class="card-body">
+        <div class="card-name">${p.name}</div>
+        <div class="card-desc">${p.desc}</div>
+        <div class="vision-tip">💡 Click to zoom</div>
+        <div class="card-footer">
+          <div>
+            <div style="display:flex;align-items:baseline;gap:4px">
+              <span class="price">$${p.price}</span>
+              ${p.deal ? `<span class="discount">$${p.original}</span>` : ''}
+            </div>
+            ${p.deal ? `<span class="savings">You save $${p.original - p.price}</span>` : ''}
+          </div>
+          <button class="btn-add" onclick="addToCart('${p.name}', this)">Add +</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function addToCart(name, btn) {
+  const orig = btn.textContent;
+  btn.textContent = '✓ Added';
+  btn.style.background = '#22c55e';
+  setTimeout(() => { btn.textContent = orig; btn.style.background = ''; }, 1200);
+}
+
+let hintTimer;
+function setMode(mode, btn) {
+  const overlay = document.getElementById('overlay');
+  
+  // Flash transition
+  overlay.classList.add('flash');
+  setTimeout(() => overlay.classList.remove('flash'), 250);
+
+  // Update body class
+  document.body.className = mode === 'default' ? '' : `mode-${mode}`;
+
+  // Update active button
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  // Update titles
+  const [title, sub] = modeTitles[mode];
+  document.getElementById('section-title').textContent = title;
+  document.getElementById('section-sub').textContent = sub;
+
+  // Re-render with animation
+  renderGrid();
+
+  // Show hint
+  const hint = document.getElementById('hint');
+  hint.textContent = modeHints[mode];
+  hint.classList.add('show');
+  clearTimeout(hintTimer);
+  hintTimer = setTimeout(() => hint.classList.remove('show'), 3000);
+}
+
+// CSS animation
+const style = document.createElement('style');
+style.textContent = `@keyframes fadeUp { from { opacity:0; transform: translateY(16px); } to { opacity:1; transform:translateY(0); } }`;
+document.head.appendChild(style);
+
+renderGrid();
+</script>
+</body>
+</html>
