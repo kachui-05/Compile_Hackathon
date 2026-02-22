@@ -57,13 +57,14 @@ mymode: (intensity) => `
   /* Your CSS here */
   body { background: red !important; }
 
-## Eyetracking
-When user is visiting a webpage, our extension tracks user's eye motion to evaluate if the user is focused or distracted and gives feedback based on the mode turned on
 `
 ```
 
 Then add a card for it in `popup.html` with `data-mode="mymode"`.
 
 ---
+
+## Eyetracking
+When user is visiting a webpage, our extension tracks user's eye motion to evaluate if the user is focused or distracted and gives feedback based on the mode turned on
 
 Built for Compile Hackathon 🚀
