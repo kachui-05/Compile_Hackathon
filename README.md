@@ -48,23 +48,7 @@ adaptive-ui-extension/
 └── icons/
 ```
 
-## Adding New Modes
-
-In `content.js`, add a new entry to the `MODES` object:
-
-```js
-mymode: (intensity) => `
-  /* Your CSS here */
-  body { background: red !important; }
-
-`
-```
-
-Then add a card for it in `popup.html` with `data-mode="mymode"`.
-
----
-
-## Eyetracking
-When user is visiting a webpage, our extension tracks user's eye motion to evaluate if the user is focused or distracted and gives feedback based on the mode turned on
+## Eyetracking Features
+When user is visiting a webpage, our extension tracks user's eye motion to evaluate if the user is focused or distracted and gives feedback based on the mode turned on. After a few seconds of being distracted, we automatically shift to our Focus mode and update the website respectively.
 
 Built for Compile Hackathon 🚀
