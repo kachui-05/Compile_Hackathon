@@ -1,4 +1,4 @@
-/ AdaptUI Content Script
+// AdaptUI Content Script
 // Injected into every page - listens for mode messages and transforms the DOM
 
 (function () {
@@ -413,3 +413,26 @@
   });
 
 })();
+
+// Eye tracking bridge
+let socket;
+
+function connectEyeTracker() {
+  socket = new WebSocket("ws://localhost:6789");
+
+  socket.addEventListener("message", (event) => {
+    if (event.data === "ENABLE_FOCUS") {
+      // Trigger your existing focus mode — replace with whatever
+      // function your extension already uses to activate focus mode
+      activateMode("focus");   // 👈 match your existing function name
+    }
+    if (event.data === "DISABLE_FOCUS") {
+      deactivateMode("focus"); // 👈 match your existing function name
+    }
+  });
+
+  socket.addEventListener("close", () => setTimeout(connectEyeTracker, 3000));
+  socket.addEventListener("error", () => socket.close());
+}
+
+connectEyeTracker();
