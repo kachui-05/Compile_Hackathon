@@ -56,6 +56,9 @@ In `content.js`, add a new entry to the `MODES` object:
 mymode: (intensity) => `
   /* Your CSS here */
   body { background: red !important; }
+
+## Eyetracking
+When user is visiting a webpage, our extension tracks user's eye motion to evaluate if the user is focused or distracted and gives feedback based on the mode turned on
 `
 ```
 
