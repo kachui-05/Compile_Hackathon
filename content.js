@@ -1,4 +1,4 @@
-// AdaptUI Content Script
+/ AdaptUI Content Script
 // Injected into every page - listens for mode messages and transforms the DOM
 
 (function () {
@@ -14,29 +14,42 @@
 
   const MODES = {
 
-    // ---- LOW VISION ----
-    lowvision: (intensity) => {
-      const scale = intensity === 1 ? 1.15 : intensity === 2 ? 1.3 : 1.5;
-      const contrast = intensity === 3 ? '200%' : intensity === 2 ? '150%' : '120%';
-      return `
-        /* Low Vision Mode */
-        * { font-size: ${scale}em !important; line-height: 1.8 !important; letter-spacing: 0.03em !important; }
-        html { font-size: ${intensity === 1 ? '14' : intensity === 2 ? '16' : '20'}px !important; }
-        body { filter: contrast(${contrast}) !important; }
-        a { text-decoration: underline !important; text-underline-offset: 4px !important; }
-        button, a, input, select, [role="button"] {
-          outline: 3px solid #ffcc00 !important;
-          outline-offset: 2px !important;
-        }
-        button:focus, a:focus, input:focus {
-          outline: 4px solid #ff4400 !important;
-          box-shadow: 0 0 0 6px rgba(255,68,0,0.3) !important;
-        }
-        img { filter: saturate(1.2) contrast(1.1) !important; }
-        /* Bigger cursor */
-        * { cursor: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><circle cx="8" cy="8" r="7" fill="white" stroke="black" stroke-width="2"/></svg>') 8 8, auto !important; }
-      `;
-    },
+  // ---- LOW VISION ----
+  lowvision: (i) => {
+    const zoom = i === 1 ? 1.15 : i === 2 ? 1.3 : 1.5;
+    const cols = i === 1 ? 3 : 2;
+    return `
+      /* Step 1: reflow Amazon's grid to fewer columns FIRST */
+      .s-main-slot {
+        display: grid !important;
+        grid-template-columns: repeat(${cols}, 1fr) !important;
+      }
+      .s-main-slot .s-result-item,
+      [data-component-type="s-search-result"] {
+        width: 100% !important;
+        max-width: 100% !important;
+        grid-column: span 1 !important;
+      }
+      .s-image {
+        width: 100% !important;
+        height: auto !important;
+        max-height: none !important;
+        object-fit: contain !important;
+      }
+      /* Step 2: then zoom the whole page */
+      html {
+        zoom: ${zoom} !important;
+      }
+      :focus, :focus-visible {
+        outline: 3px solid #ffcc00 !important;
+        outline-offset: 3px !important;
+      }
+      a { text-decoration: underline !important; }
+      #__adaptui_toolbar__, #__adaptui_toast__ {
+        zoom: ${(1 / zoom).toFixed(3)} !important;
+      }
+    `;
+  },
 
     // ---- FOCUS / READ ----
     focus: (intensity) => {
