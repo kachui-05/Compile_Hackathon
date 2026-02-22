@@ -6,11 +6,16 @@
   "permissions": [
     "activeTab",
     "storage",
-    "scripting"
+    "scripting", 
+    "tabs"
   ],
   "host_permissions": [
-    "<all_urls>"
+    "<all_urls>",
+    "ws://localhost:6789"
   ],
+  "background": {
+    "service_worker": "background.js"
+  },
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
